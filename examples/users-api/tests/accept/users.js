@@ -1,10 +1,11 @@
+/* eslint-env mocha */
+
 var logger = require('winston');
 var buildServer = require('../../app');
 var chai = require('chai');
 var chaiHttp = require('chai-http');
 var seed = require('../../seed/seed');
 var expect = require('chai').expect;
-var PouchDB = require('pouchdb');
 var fs = require('fs');
 var request = require('request-promise');
 
@@ -20,7 +21,7 @@ const baseRequest = request.defaults({
 
 function wrapError (promise) {
   return promise
-    .then(result => [null,result])
+    .then(result => [null, result])
     .catch(err => [err]);
 }
 
@@ -50,6 +51,7 @@ describe('Users', function () {
     it('should fail if user doesn\'t exist', async function () {
       let err, response;
       [err, response] = await wrapError(baseRequest('/users/tinywolf000'));
+      expect(response).to.be.equal(undefined);
       expect(err.statusCode).to.be.equal(404);
     });
 
@@ -102,6 +104,7 @@ describe('Users', function () {
       await baseRequest.delete('/users/crazybear294');
       let err, response;
       [err, response] = await wrapError(baseRequest('/users/crazybear294'));
+      expect(response).to.equal(undefined);
       expect(err.statusCode).to.be.equal(404);
     });
   });
@@ -110,11 +113,13 @@ describe('Users', function () {
     it('should add an attachment', function (done) {
       // Find a user in the DB
       fs.readFile('./fixtures/test.pdf', (err, upload) => {
+        expect(err).to.equal(null);
         chai.request(url)
         .put('/users/tinywolf709/attachment/test.pdf')
         .set('content-type', 'application/octet-stream')
         .send(upload)
         .end(function (err, res) {
+          expect(err).to.equal(null);
           res.should.have.status(200);
           expect(res.body).to.be.a('object');
           done();
